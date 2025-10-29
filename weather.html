@@ -11,12 +11,12 @@
       font-family: "Poppins", sans-serif;
       margin: 0;
       min-height: 100vh;
-      display: block; /* <-- FIXED: no flex, allows container to grow naturally */
-      overflow-y: auto; /* allow scroll when AI text is long */
+      display: block; 
+      overflow-y: auto; 
       background: linear-gradient(135deg, #ffb6b9, #f5d5cb, #c7ceea);
       background-size: 200% 200%;
       animation: bgMove 10s ease infinite;
-      padding: 60px 0; /* spacing for top & bottom */
+      padding: 60px 0; 
       text-align: center;
     }
 
@@ -58,7 +58,7 @@
       width: 340px;
       transition: all 0.3s ease;
       border: 1px solid rgba(255, 255, 255, 0.3);
-      margin: 0 auto 50px; /* center horizontally + space at bottom */
+      margin: 0 auto 50px; 
     }
 
     .container:hover {
@@ -171,9 +171,9 @@
   <footer>☁️ Powered by OpenWeather & Google Gemini AI</footer>
 
   <script>
-    const OPENWEATHER_API = "6bc89394e4ff64a6526b4795ddeb5168";
-    const GEMINI_API_KEY = "AIzaSyBj2P95T74WnA-8OMo_dkpLpV6fFKjlhOU";
-
+    const OPENWEATHER_API = "YOUR_OPENWEATHER_API_KEY";
+    const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY";
+    
     async function getWeather() {
       const city = document.getElementById("city").value.trim();
       const resultDiv = document.getElementById("result");
@@ -245,5 +245,6 @@
     }
   </script>
 </body>
+
 
 </html>
