@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>☁️ Smart Weather App</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+
+    body {
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      display: block; /* <-- FIXED: no flex, allows container to grow naturally */
+      overflow-y: auto; /* allow scroll when AI text is long */
+      background: linear-gradient(135deg, #ffb6b9, #f5d5cb, #c7ceea);
+      background-size: 200% 200%;
+      animation: bgMove 10s ease infinite;
+      padding: 60px 0; /* spacing for top & bottom */
+      text-align: center;
+    }
+
+    @keyframes bgMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Floating Clouds */
+    .cloud {
+      position: fixed;
+      background: rgba(255, 255, 255, 0.75);
+      border-radius: 50%;
+      filter: blur(10px);
+      animation: float 60s linear infinite;
+      z-index: 1;
+    }
+
+    .cloud:nth-child(1) { width: 200px; height: 60px; top: 10%; left: -20%; animation-delay: 0s; }
+    .cloud:nth-child(2) { width: 150px; height: 50px; top: 40%; left: -15%; animation-delay: 10s; }
+    .cloud:nth-child(3) { width: 180px; height: 55px; top: 70%; left: -25%; animation-delay: 20s; }
+
+    @keyframes float {
+      from { transform: translateX(0); }
+      to { transform: translateX(130vw); }
+    }
+
+    /* Glass Container */
+    .container {
+      position: relative;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(18px);
+      border-radius: 20px;
+      box-shadow: 0 8px 35px rgba(0, 0, 0, 0.25);
+      padding: 25px 30px;
+      text-align: center;
+      z-index: 10;
+      width: 340px;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      margin: 0 auto 50px; /* center horizontally + space at bottom */
+    }
+
+    .container:hover {
+      transform: scale(1.01);
+      box-shadow: 0 12px 45px rgba(0, 0, 0, 0.25);
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      color: #513252;
+      margin-bottom: 18px;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
+    }
+
+    input {
+      padding: 10px;
+      width: 75%;
+      font-size: 0.95rem;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      background-color: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #ff7eb3, #ff758c);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.4s;
+      box-shadow: 0 3px 10px rgba(255, 118, 140, 0.4);
+    }
+
+    button:hover {
+      transform: translateY(-1.5px);
+      background: linear-gradient(90deg, #ff94b4, #ff6a88);
+      box-shadow: 0 5px 14px rgba(255, 118, 140, 0.55);
+    }
+
+    #icon {
+      width: 85px;
+      margin: 15px auto;
+      display: block;
+    }
+
+    #result {
+      text-align: left;
+      margin-top: 10px;
+      color: #3e2f5b;
+      font-size: 0.9rem;
+      word-wrap: break-word;
+    }
+
+    #summary {
+      margin-top: 15px;
+      background: rgba(255, 255, 255, 0.35);
+      border-radius: 12px;
+      padding: 15px;
+      font-style: italic;
+      font-size: 0.9rem;
+      color: #4b3f72;
+      text-align: justify;
+      line-height: 1.4;
+      word-wrap: break-word;
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .error {
+      color: #ff5c5c;
+      font-weight: bold;
+    }
+
+    footer {
+      font-size: 0.8rem;
+      color: #3b2c35;
+      text-align: center;
+      margin-top: 30px;
+      z-index: 10;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <!-- Clouds -->
+  <div class="cloud"></div>
+  <div class="cloud"></div>
+  <div class="cloud"></div>
+
+  <div class="container">
+    <h1>🌍 Smart Weather App</h1>
+    <input type="text" id="city" placeholder="Enter city (e.g. Paris)" />
+    <button onclick="getWeather()">Get Weather</button>
+
+    <img id="icon" src="" alt="" />
+    <div id="result"></div>
+    <div id="summary"></div>
+  </div>
+
+  <footer>☁️ Powered by OpenWeather & Google Gemini AI</footer>
+
+  <script>
+    const OPENWEATHER_API = "6bc89394e4ff64a6526b4795ddeb5168";
+    const GEMINI_API_KEY = "AIzaSyBj2P95T74WnA-8OMo_dkpLpV6fFKjlhOU";
+
+    async function getWeather() {
+      const city = document.getElementById("city").value.trim();
+      const resultDiv = document.getElementById("result");
+      const summaryDiv = document.getElementById("summary");
+      const iconImg = document.getElementById("icon");
+
+      if (!city) {
+        alert("Please enter a city name!");
+        return;
+      }
+
+      resultDiv.innerHTML = "⏳ Fetching weather...";
+      summaryDiv.innerHTML = "";
+      iconImg.src = "";
+
+      try {
+        const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${OPENWEATHER_API}&units=metric`;
+        const response = await fetch(weatherUrl);
+        const data = await response.json();
+
+        if (data.cod !== 200) {
+          resultDiv.innerHTML = `<p class='error'>❌ ${data.message}</p>`;
+          return;
+        }
+
+        const { temp, humidity } = data.main;
+        const desc = data.weather[0].description;
+        const wind = data.wind.speed;
+        const iconCode = data.weather[0].icon;
+
+        iconImg.src = `https://openweathermap.org/img/wn/${iconCode}@4x.png`;
+
+        resultDiv.innerHTML = `
+          <h3>${data.name}, ${data.sys.country}</h3>
+          <p>🌡️ <b>Temperature:</b> ${temp}°C</p>
+          <p>💧 <b>Humidity:</b> ${humidity}%</p>
+          <p>🌬️ <b>Wind:</b> ${wind} m/s</p>
+          <p>☁️ <b>Condition:</b> ${desc}</p>
+        `;
+
+        const prompt = `
+        You are a friendly AI meteorologist. Summarize this weather info in 2 sentences:
+        City: ${data.name}, Country: ${data.sys.country}
+        Temp: ${temp}°C, Humidity: ${humidity}%, Condition: ${desc}, Wind: ${wind} m/s.
+        Make it sound natural and engaging.
+        `;
+
+        const aiRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+            }),
+          }
+        );
+
+        const aiData = await aiRes.json();
+        const aiSummary =
+          aiData?.candidates?.[0]?.content?.parts?.[0]?.text ||
+          `It’s currently ${desc} in ${data.name}. The temperature is ${temp}°C with ${humidity}% humidity.`;
+
+        summaryDiv.innerHTML = `<b>🤖 AI Summary:</b> ${aiSummary}`;
+      } catch (error) {
+        console.error(error);
+        resultDiv.innerHTML = `<p class='error'>⚠️ Unable to fetch weather data.</p>`;
+      }
+    }
+  </script>
+</body>
+
+</html>
